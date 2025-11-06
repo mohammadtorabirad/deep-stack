@@ -38,7 +38,9 @@ android {
 dependencies {
 
     implementation(libs.dji.sdk.v5)
-    compileOnly(libs.dji.sdk.provider.v5)
+//    implementation(libs.dji.sdk.net.v5)
+    implementation(libs.dji.sdk.impl)
+    implementation(libs.dji.sdk.provider.v5)
 
 
     

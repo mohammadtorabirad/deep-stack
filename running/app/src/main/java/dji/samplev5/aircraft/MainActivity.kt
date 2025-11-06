@@ -1,10 +1,15 @@
 package dji.samplev5.aircraft
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.core.content.ContextCompat
+import dji.v5.common.callback.CommonCallbacks
 
 class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
@@ -45,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         statusText = findViewById(R.id.statusText)
         captureButton = findViewById(R.id.captureButton)
 
-        captureButton.setOnClickListener { capturePhoto() }
+        captureButton.setOnClickListener { takePhoto() }
         requestMissingPermissions()
     }
 
@@ -60,34 +65,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCameraInstance(): Camera? {
-        val product = DJICameraSampleApp.getProductInstance()
-        if (product is Aircraft) {
-            return product.camera
+
+    private fun takePhoto() {
+        val cameraMgr = CameraManager.getInstance()
+        val camera = cameraMgr.currentCamera
+        if (camera == null) {
+            Toast.makeText(this, "No camera connected", Toast.LENGTH_SHORT).show()
+            return
         }
-        updateStatus("No aircraft connected")
-        return null
-    }
 
-    private fun capturePhoto() {
-        val camera = getCameraInstance() ?: return
-
-        camera.setMode(CameraMode.SHOOT_PHOTO) { error ->
-            if (error == null) {
-                camera.startShootPhoto(
-                    CameraShootPhotoMode.SINGLE,
-                    CommonCallbacks.CompletionCallback { shootError ->
-                        if (shootError == null) {
-                            updateStatus("Photo capture triggered")
-                        } else {
-                            updateStatus("Failed to trigger photo: ${shootError.description}")
-                        }
+        cameraMgr.setPhotoShootMode(PhotoShootMode.SINGLE, object : CommonCallbacks.CompletionCallback {
+            override fun onSuccess() {
+                cameraMgr.startShootPhoto(object : CommonCallbacks.CompletionCallback {
+                    override fun onSuccess() {
+                        Toast.makeText(this@MainActivity, "📸 Photo captured!", Toast.LENGTH_SHORT).show()
                     }
-                )
-            } else {
-                updateStatus("Failed to switch mode: ${error.description}")
+                    override fun onFailure(error: DJIError) {
+                        Toast.makeText(this@MainActivity, "Error: ${error.description}", Toast.LENGTH_SHORT).show()
+                    }
+                })
             }
-        }
+
+            override fun onFailure(error: DJIError) {
+                Toast.makeText(this@MainActivity, "Mode set failed: ${error.description}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun updateStatus(message: String) {

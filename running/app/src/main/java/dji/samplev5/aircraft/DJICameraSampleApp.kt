@@ -1,59 +1,54 @@
 package dji.samplev5.aircraft
 
+import android.app.Application
+import android.content.Context
+import android.util.Log
+import dji.v5.common.error.IDJIError
+import dji.v5.common.register.DJISDKInitEvent
+import dji.v5.manager.SDKManager
+import dji.v5.manager.interfaces.SDKManagerCallback
 class DJICameraSampleApp : Application() {
-    companion object {
-        private const val TAG = "DJICameraSampleApp"
-
-        var product: BaseProduct? = null
-            private set
-
-        fun getProductInstance(): BaseProduct? = product
-    }
-
-    override fun attachBaseContext(base: Context?) {
-        super.attachBaseContext(base)
-    }
-
     override fun onCreate() {
         super.onCreate()
-        DJISDKManager.getInstance().registerApp(this, object : DJISDKManager.SDKManagerCallback {
-            override fun onRegister(djiError: DJIError?) {
-                if (djiError == DJISDKError.REGISTRATION_SUCCESS) {
-                    Log.d(TAG, "Registration successful")
-                    DJISDKManager.getInstance().startConnectionToProduct()
-                } else {
-                    Log.e(TAG, "Registration failed: ${djiError?.description}")
+
+        SDKManager.getInstance().init(this, object : SDKManagerCallback {
+            override fun onInitProcess(event: DJISDKInitEvent, totalProcess: Int) {
+                if (event == DJISDKInitEvent.INITIALIZE_COMPLETE) {
+                    SDKManager.getInstance().registerApp()
                 }
             }
 
-            override fun onProductDisconnect() {
-                Log.d(TAG, "Product disconnected")
-                product = null
+            override fun onRegisterSuccess() {
+                Log.i("DJI_APP", "✅ DJI SDK Register Success")
             }
 
-            override fun onProductConnect(baseProduct: BaseProduct?) {
-                Log.d(TAG, "Product connected: $baseProduct")
-                product = baseProduct
+            override fun onRegisterFailure(error: IDJIError?) {
+                TODO("Not yet implemented")
             }
 
-            override fun onProductChanged(baseProduct: BaseProduct?) {
-                Log.d(TAG, "Product changed: $baseProduct")
-                product = baseProduct
+            override fun onProductDisconnect(productId: Int) {
+                TODO("Not yet implemented")
             }
 
-            override fun onComponentChange(
-                componentKey: dji.sdk.base.BaseProduct.ComponentKey?,
-                oldComponent: dji.sdk.base.BaseComponent?,
-                newComponent: dji.sdk.base.BaseComponent?
+            override fun onProductConnect(productId: Int) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onProductChanged(productId: Int) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onInitProcess(
+                event: DJISDKInitEvent?,
+                totalProcess: Int
             ) {
-                Log.d(TAG, "Component changed: $componentKey")
+                TODO("Not yet implemented")
             }
 
-            override fun onInitProcess(djisdkInitEvent: DJISDKInitEvent?, i: Int) {
-                Log.d(TAG, "Init process: $djisdkInitEvent $i")
+            override fun onDatabaseDownloadProgress(current: Long, total: Long) {
+                TODO("Not yet implemented")
             }
 
-            override fun onDatabaseDownloadProgress(l: Long, l1: Long) {}
         })
     }
 }

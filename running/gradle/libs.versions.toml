@@ -20,9 +20,11 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+#noinspection Aligned16KB
 dji-sdk-v5 = { group = "com.dji", name = "dji-sdk-v5-aircraft", version.ref = "djiSdk" }
-dji-sdk-provider-v5 = { group = "com.dji", name = "dji-sdk-v5-aircraft-provided", version.ref = "djiSdk" }
-
+dji-sdk-impl = { group = "com.dji", name = "dji-sdk-v5-aircraft-provided", version.ref = "djiSdk" }
+dji-sdk-provider-v5 = { group = "com.dji", name = "dji-sdk-v5-networkImp", version.ref = "djiSdk" }
+#dji-sdk-net-v5 = { group = "com.dji", name = "dji-sdk-v5-networkImp", version.ref = "djiSdk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
