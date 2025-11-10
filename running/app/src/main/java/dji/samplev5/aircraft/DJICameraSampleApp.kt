@@ -38,13 +38,6 @@ class DJICameraSampleApp : Application() {
                 TODO("Not yet implemented")
             }
 
-            override fun onInitProcess(
-                event: DJISDKInitEvent?,
-                totalProcess: Int
-            ) {
-                TODO("Not yet implemented")
-            }
-
             override fun onDatabaseDownloadProgress(current: Long, total: Long) {
                 TODO("Not yet implemented")
             }
