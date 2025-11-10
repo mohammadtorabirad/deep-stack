@@ -3,13 +3,26 @@ package dji.samplev5.aircraft
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import dji.sdk.keyvalue.key.CameraKey
+import dji.sdk.keyvalue.key.KeyTools
+import dji.sdk.keyvalue.value.camera.CameraMode
+import dji.sdk.keyvalue.value.camera.CameraType
+import dji.sdk.keyvalue.value.common.CameraLensType
+import dji.sdk.keyvalue.value.common.ComponentIndexType
+import dji.sdk.keyvalue.value.common.EmptyMsg
+import dji.sdk.keyvalue.value.mission.CameraAction
 import dji.v5.common.callback.CommonCallbacks
+import dji.v5.common.error.IDJIError
+import dji.v5.manager.KeyManager
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
@@ -50,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         statusText = findViewById(R.id.statusText)
         captureButton = findViewById(R.id.captureButton)
 
-        captureButton.setOnClickListener { takePhoto() }
+        captureButton.setOnClickListener { captureSinglePhoto() }
         requestMissingPermissions()
     }
 
@@ -65,31 +78,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun captureSinglePhoto() {
+        val keyManager = KeyManager.getInstance() ?: return
+        ensurePhotoMode(keyManager)
+    }
 
-    private fun takePhoto() {
-        val cameraMgr = CameraManager.getInstance()
-        val camera = cameraMgr.currentCamera
-        if (camera == null) {
-            Toast.makeText(this, "No camera connected", Toast.LENGTH_SHORT).show()
-            return
-        }
+    private fun ensurePhotoMode(keyManager: KeyManager) {
+        //val modeKey = KeyTools.createKey(CameraKey.KeyCameraMode, ComponentIndexType.UP)
+        triggerShutter(keyManager)
+    }
 
-        cameraMgr.setPhotoShootMode(PhotoShootMode.SINGLE, object : CommonCallbacks.CompletionCallback {
-            override fun onSuccess() {
-                cameraMgr.startShootPhoto(object : CommonCallbacks.CompletionCallback {
-                    override fun onSuccess() {
-                        Toast.makeText(this@MainActivity, "📸 Photo captured!", Toast.LENGTH_SHORT).show()
-                    }
-                    override fun onFailure(error: DJIError) {
-                        Toast.makeText(this@MainActivity, "Error: ${error.description}", Toast.LENGTH_SHORT).show()
-                    }
-                })
-            }
 
-            override fun onFailure(error: DJIError) {
-                Toast.makeText(this@MainActivity, "Mode set failed: ${error.description}", Toast.LENGTH_SHORT).show()
-            }
-        })
+    private fun triggerShutter(keyManager: KeyManager) {
+        val actionKey = KeyTools.createCameraKey(
+            CameraKey.KeyStartShootPhoto,
+            ComponentIndexType.UP,
+            CameraLensType.CAMERA_LENS_MS_G
+        )
+
+
+        keyManager.performAction(
+            actionKey,
+            object : CommonCallbacks.CompletionCallbackWithParam<EmptyMsg> {
+                override fun onSuccess(result: EmptyMsg) {
+                    Log.i("DJI", "✅ Photo capture started")
+                }
+
+                override fun onFailure(error: IDJIError) {
+                    Log.e("DJI", "❌ Error starting photo capture: $error")
+                }
+            })
+
     }
 
     private fun updateStatus(message: String) {
