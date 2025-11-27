@@ -23,7 +23,7 @@ class DJICameraSampleApp : Application() {
             }
 
             override fun onRegisterFailure(error: IDJIError?) {
-                TODO("Not yet implemented")
+                Log.e("DJI_APP", "❌ DJI SDK Register Failed: ${error?.errorCode()} - ${error?.description()}")
             }
 
             override fun onProductDisconnect(productId: Int) {
