@@ -26,7 +26,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 
 
-    <application
+    <application android:name=".DJICameraSampleApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -35,30 +35,31 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Running">
+
+
+        <meta-data
+            android:name="com.dji.sdk.API_KEY"
+            android:value="27809da6c72db9645eb36b94"/>
+
+        <meta-data
+            android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
+            android:resource="@xml/accessory_filter" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
 
-            <meta-data
-                android:name="com.dji.sdk.API_KEY"
-                android:value="27809da6c72db9645eb36b94"/>
-
-            <meta-data
-                android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
-                android:resource="@xml/accessory_filter" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.LAUNCHER" />
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
 
             </intent-filter>
-
         </activity>
+
     </application>
 
 </manifest>

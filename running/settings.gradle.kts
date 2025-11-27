@@ -28,4 +28,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "running"
 include(":app")
- 
+include(":dji-sdk-v5-aircraft")
+project(":dji-sdk-v5-aircraft").projectDir = file("../libs/dji-sdk-v5-aircraft")
