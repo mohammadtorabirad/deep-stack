@@ -39,7 +39,7 @@
 
         <meta-data
             android:name="com.dji.sdk.API_KEY"
-            android:value="27809da6c72db9645eb36b94"/>
+            android:value="efa0d478e30e4bbbe6b4d195"/>
 
         <meta-data
             android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"

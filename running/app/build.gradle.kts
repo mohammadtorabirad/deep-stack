@@ -1,3 +1,5 @@
+import org.gradle.internal.impldep.com.amazonaws.PredefinedClientConfigurations.defaultConfig
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -13,6 +15,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        manifestPlaceholders["API_KEY"] = "efa0d478e30e4bbbe6b4d195"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
