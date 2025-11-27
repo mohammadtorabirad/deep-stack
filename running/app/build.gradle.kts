@@ -28,6 +28,11 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        debug {
+            isDebuggable = true
+            isMinifyEnabled = false
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -38,6 +43,7 @@ android {
     }
     packaging {
         jniLibs {
+            useLegacyPackaging = true
             pickFirsts += setOf(
                 "lib/arm64-v8a/libdjivideo.so",
                 "lib/armeabi-v7a/libdjivideo.so",

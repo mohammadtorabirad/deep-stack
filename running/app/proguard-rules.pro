@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep DJI SDK classes
+-keep class dji.v5.** { *; }
+-keep interface dji.v5.** { *; }
+-keep enum dji.v5.** { *; }
+
+# Keep DJI SDK KeyValue classes
+-keep class dji.sdk.keyvalue.** { *; }
+-keep interface dji.sdk.keyvalue.** { *; }
+-keep enum dji.sdk.keyvalue.** { *; }

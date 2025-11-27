@@ -3,6 +3,7 @@ package dji.samplev5.aircraft
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import com.secneo.sdk.Helper
 import dji.v5.common.error.IDJIError
 import dji.v5.common.register.DJISDKInitEvent
 import dji.v5.manager.SDKManager
@@ -10,6 +11,13 @@ import dji.v5.manager.interfaces.SDKManagerCallback
 import kotlin.math.log
 
 class DJICameraSampleApp : Application() {
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        // IMPORTANT: DJI SDK V5 uses secneo helper to load classes
+        Helper.install(this)
+    }
+
     override fun onCreate() {
         super.onCreate()
 
