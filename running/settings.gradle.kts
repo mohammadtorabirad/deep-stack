@@ -17,7 +17,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://devops-repo.dji.com/repository/public/") }
+
+        maven {
+            url = uri("https://maven.dji.com/artifactory/dji-sdk-v5-release/")
+            isAllowInsecureProtocol = false
+        }
+
     }
 }
 
