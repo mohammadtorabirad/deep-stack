@@ -37,11 +37,12 @@ class DJICameraSampleApp : Application() {
             }
 
             override fun onProductChanged(productId: Int) {
-                TODO("Not yet implemented")
+                Log.i("DJI_APP", "✅ Product changed from this device. PorductID: $productId")
+
             }
 
             override fun onDatabaseDownloadProgress(current: Long, total: Long) {
-                TODO("Not yet implemented")
+                Log.i("DJI_APP", "✅ Database download progress: $current/$total")
             }
 
         })

@@ -37,7 +37,20 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.INTERNET,
         Manifest.permission.VIBRATE,
         Manifest.permission.WAKE_LOCK,
-        Manifest.permission.ACCESS_NETWORK_STATE,
+        Manifest.permission.ACCESS_NETWORK_STATE
+            .apply {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    plus(arrayOf(
+                        Manifest.permission.READ_MEDIA_IMAGES,
+                        Manifest.permission.READ_MEDIA_VIDEO
+                    ))
+                } else {
+                    plus(arrayOf(
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    ))
+                }
+            }
 //        Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS,
 //        Manifest.permission.CAMERA,
 //        Manifest.permission.RECORD_AUDIO
@@ -82,7 +95,11 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val keyManager = KeyManager.getInstance() ?: return
+        val keyManager = KeyManager.getInstance()
+        if (keyManager == null) {
+            updateStatus("❌ KeyManager not available")
+            return
+        }
         ensurePhotoMode(keyManager)
     }
 
@@ -97,6 +114,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(error: IDJIError) {
+                updateStatus("Camera mode set failed")
+
                 Log.e("DJI", "❌ Error setting camera mode: " + error.description())
             }
         })
