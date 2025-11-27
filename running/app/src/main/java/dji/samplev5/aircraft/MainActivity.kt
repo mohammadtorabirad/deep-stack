@@ -91,7 +91,9 @@ class MainActivity : AppCompatActivity() {
 
         keyManager.setValue(modeKey, CameraMode.PHOTO_NORMAL, object : CommonCallbacks.CompletionCallback {
             override fun onSuccess() {
+                updateStatus("Camera mode set to photo normal")
                 triggerShutter(keyManager)
+
             }
 
             override fun onFailure(error: IDJIError) {
@@ -106,7 +108,7 @@ class MainActivity : AppCompatActivity() {
         val actionKey = KeyTools.createCameraKey(
             CameraKey.KeyStartShootPhoto,
             ComponentIndexType.LEFT_OR_MAIN,
-            CameraLensType.CAMERA_LENS_ZOOM
+            CameraLensType.UNKNOWN
         )
 
 
@@ -115,10 +117,12 @@ class MainActivity : AppCompatActivity() {
             object : CommonCallbacks.CompletionCallbackWithParam<EmptyMsg> {
                 override fun onSuccess(result: EmptyMsg) {
                     Log.i("DJI", "✅ Photo capture started")
+                    updateStatus("Photo captured!!!")
                 }
 
                 override fun onFailure(error: IDJIError) {
-                    Log.e("DJI", "❌ Error starting photo capture: ${error.description()}")
+                    Log.e("DJI", "❌ Error capturing photo: ${error.description()}")
+                    updateStatus("Capture failed: ${error.description()}")
                 }
             })
 

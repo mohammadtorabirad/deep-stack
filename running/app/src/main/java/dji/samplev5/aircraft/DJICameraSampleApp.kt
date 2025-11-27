@@ -7,6 +7,8 @@ import dji.v5.common.error.IDJIError
 import dji.v5.common.register.DJISDKInitEvent
 import dji.v5.manager.SDKManager
 import dji.v5.manager.interfaces.SDKManagerCallback
+import kotlin.math.log
+
 class DJICameraSampleApp : Application() {
     override fun onCreate() {
         super.onCreate()
@@ -27,11 +29,11 @@ class DJICameraSampleApp : Application() {
             }
 
             override fun onProductDisconnect(productId: Int) {
-                TODO("Not yet implemented")
+                Log.i("DJI_APP", "❌ Product disconnected from this device. PorductID: $productId");
             }
 
             override fun onProductConnect(productId: Int) {
-                TODO("Not yet implemented")
+                Log.i("DJI_APP", "✅ Product connected from this device. PorductID: $productId")
             }
 
             override fun onProductChanged(productId: Int) {
