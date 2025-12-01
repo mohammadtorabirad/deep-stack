@@ -23,7 +23,6 @@ import dji.v5.manager.KeyManager
 import dji.v5.manager.SDKManager
 import android.os.Handler
 
-
 class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var captureButton: Button
@@ -31,6 +30,9 @@ class MainActivity : AppCompatActivity() {
     private var isDroneConnected = false
 
     private val handler = Handler(Looper.getMainLooper())
+
+    private var detectedLens: CameraLensType? = null
+    private var detectedComponent: ComponentIndexType? = null
     private val neededPermissions = arrayOf(
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
         Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -115,6 +117,7 @@ class MainActivity : AppCompatActivity() {
                 isDroneConnected = connected == true
                 runOnUiThread {
                     updateStatus(if (isDroneConnected) "✅ پهپاد متصل است" else "⏳ در انتظار اتصال...")
+                    detectAvailableCamera()
                 }
             }
 
@@ -122,6 +125,113 @@ class MainActivity : AppCompatActivity() {
                 isDroneConnected = false
                 runOnUiThread {
                     updateStatus("❌ خطا در بررسی اتصال: ${error.description()}")
+                }
+            }
+        })
+    }
+
+    private fun detectAvailableCamera() {
+        // ✅ تست لنزهای مختلف
+        val testLenses = listOf(
+            CameraLensType.CAMERA_LENS_ZOOM,
+            CameraLensType.CAMERA_LENS_WIDE,
+            CameraLensType.CAMERA_LENS_THERMAL,
+                    CameraLensType.CAMERA_LENS_ZOOM,
+            CameraLensType.CAMERA_LENS_WIDE,
+            CameraLensType.CAMERA_LENS_THERMAL,
+            CameraLensType.CAMERA_LENS_MS_G,
+            CameraLensType.CAMERA_LENS_MS_R,
+            CameraLensType.CAMERA_LENS_MS_RE,
+            CameraLensType.CAMERA_LENS_MS_NIR,
+            CameraLensType.CAMERA_LENS_MS_NDVI,
+            CameraLensType.CAMERA_LENS_RGB,
+            CameraLensType.CAMERA_LENS_PCD,
+            CameraLensType.CAMERA_LENS_DEFAULT,
+            CameraLensType.UNKNOWN
+
+        )
+
+        val testComponents = listOf(
+            ComponentIndexType.LEFT_OR_MAIN,
+            ComponentIndexType.UP,
+            ComponentIndexType.LEFT_OR_MAIN,
+            ComponentIndexType.RIGHT,
+            ComponentIndexType.UP,
+            ComponentIndexType.INDEX_3,
+            ComponentIndexType.UP_TYPE_C,
+            ComponentIndexType.UP_TYPE_C_EXT_ONE,
+            ComponentIndexType.INDEX_6,
+            ComponentIndexType.FPV,
+            ComponentIndexType.INDEX_8,
+            ComponentIndexType.INDEX_9,
+            ComponentIndexType.INDEX_10,
+            ComponentIndexType.INDEX_11,
+            ComponentIndexType.INDEX_12,
+            ComponentIndexType.AGGREGATION,
+            ComponentIndexType.VISION_ASSIST,
+            ComponentIndexType.PORT_1,
+            ComponentIndexType.PORT_2,
+            ComponentIndexType.PORT_3,
+            ComponentIndexType.PORT_4,
+            ComponentIndexType.PORT_5,
+            ComponentIndexType.PORT_6,
+            ComponentIndexType.PORT_7,
+            ComponentIndexType.PORT_8
+
+            )
+
+        // ✅ چک کردن اولین ترکیب موفق
+        checkNextCamera(testComponents, testLenses, 0, 0)
+    }
+
+    private fun checkNextCamera(
+        components: List<ComponentIndexType>,
+        lenses: List<CameraLensType>,
+        compIndex: Int,
+        lensIndex: Int
+    ) {
+        if (compIndex >= components.size) {
+            Log.e("DJI", "❌ No camera detected in simulator!")
+            runOnUiThread {
+                updateStatus("❌ هیچ دوربینی پیدا نشد - شبیه‌ساز را تنظیم کنید")
+            }
+            return
+        }
+
+        if (lensIndex >= lenses.size) {
+            checkNextCamera(components, lenses, compIndex + 1, 0)
+            return
+        }
+
+        val component = components[compIndex]
+        val lens = lenses[lensIndex]
+
+        val modeKey = KeyTools.createKey(
+            CameraKey.KeyCameraMode,
+            component
+        )
+
+        Log.d("DJI", "🔍 Testing camera - Component: $component, Lens: $lens")
+
+        KeyManager.getInstance().getValue(modeKey, object : CommonCallbacks.CompletionCallbackWithParam<CameraMode> {
+            override fun onSuccess(mode: CameraMode?) {
+                Log.i("DJI", "✅ Camera detected! Component: $component, Lens: $lens, Mode: $mode")
+                detectedComponent = component
+                detectedLens = lens
+
+                runOnUiThread {
+                    updateStatus("✅ دوربین شناسایی شد - آماده عکس‌گیری")
+                    captureButton.isEnabled = true
+                }
+            }
+
+            override fun onFailure(error: IDJIError) {
+                // ✅ اگر خطای 255 (handler not found) بود، تست بعدی
+                if (error.errorCode() == "255") {
+                    Log.d("DJI", "❌ No camera at $component/$lens, trying next...")
+                    checkNextCamera(components, lenses, compIndex, lensIndex + 1)
+                } else {
+                    Log.e("DJI", "❌ Camera detection error: ${error.description()}")
                 }
             }
         })
@@ -169,8 +279,9 @@ class MainActivity : AppCompatActivity() {
         val actionKey = KeyTools.createCameraKey(
             CameraKey.KeyStartShootPhoto,
             ComponentIndexType.LEFT_OR_MAIN,
-            CameraLensType.UNKNOWN
+            CameraLensType.CAMERA_LENS_ZOOM
         )
+
 
 
         keyManager.performAction(
@@ -183,7 +294,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onFailure(error: IDJIError) {
                     Log.e("DJI", "❌ Error capturing photo: ${error.description()}")
-                    updateStatus("Capture failed: ${error.description()}")
+                    updateStatus("Capture failed: ${error.errorCode()}")
                 }
             })
 
