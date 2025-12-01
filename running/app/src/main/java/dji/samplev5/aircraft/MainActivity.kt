@@ -3,6 +3,7 @@ package dji.samplev5.aircraft
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
@@ -10,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import dji.sdk.keyvalue.key.CameraKey
+import dji.sdk.keyvalue.key.FlightControllerKey
 import dji.sdk.keyvalue.key.KeyTools
 import dji.sdk.keyvalue.value.camera.CameraMode
 import dji.sdk.keyvalue.value.common.CameraLensType
@@ -19,12 +21,16 @@ import dji.v5.common.callback.CommonCallbacks
 import dji.v5.common.error.IDJIError
 import dji.v5.manager.KeyManager
 import dji.v5.manager.SDKManager
+import android.os.Handler
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var captureButton: Button
 
+    private var isDroneConnected = false
+
+    private val handler = Handler(Looper.getMainLooper())
     private val neededPermissions = arrayOf(
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
         Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -40,15 +46,19 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.ACCESS_NETWORK_STATE
             .apply {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    plus(arrayOf(
-                        Manifest.permission.READ_MEDIA_IMAGES,
-                        Manifest.permission.READ_MEDIA_VIDEO
-                    ))
+                    plus(
+                        arrayOf(
+                            Manifest.permission.READ_MEDIA_IMAGES,
+                            Manifest.permission.READ_MEDIA_VIDEO
+                        )
+                    )
                 } else {
-                    plus(arrayOf(
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ))
+                    plus(
+                        arrayOf(
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE
+                        )
+                    )
                 }
             }
 //        Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS,
@@ -56,6 +66,15 @@ class MainActivity : AppCompatActivity() {
 //        Manifest.permission.RECORD_AUDIO
     )
 
+    private fun monitorConnection() {
+        // چک کردن مداوم وضعیت اتصال
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                checkDroneConnection()
+                handler.postDelayed(this, 2000)
+            }
+        }, 2000)
+    }
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
             val denied = result.filterValues { !it }.keys
@@ -75,6 +94,7 @@ class MainActivity : AppCompatActivity() {
 
         captureButton.setOnClickListener { captureSinglePhoto() }
         requestMissingPermissions()
+        monitorConnection()
     }
 
     private fun requestMissingPermissions() {
@@ -84,8 +104,27 @@ class MainActivity : AppCompatActivity() {
         if (missing.isNotEmpty()) {
             permissionLauncher.launch(missing.toTypedArray())
         } else {
-            updateStatus("All permissions already granted")
         }
+
+    }
+
+    private fun checkDroneConnection() {
+        val connectionKey = KeyTools.createKey(FlightControllerKey.KeyConnection)
+        KeyManager.getInstance().getValue(connectionKey, object : CommonCallbacks.CompletionCallbackWithParam<Boolean> {
+            override fun onSuccess(connected: Boolean?) {
+                isDroneConnected = connected == true
+                runOnUiThread {
+                    updateStatus(if (isDroneConnected) "✅ پهپاد متصل است" else "⏳ در انتظار اتصال...")
+                }
+            }
+
+            override fun onFailure(error: IDJIError) {
+                isDroneConnected = false
+                runOnUiThread {
+                    updateStatus("❌ خطا در بررسی اتصال: ${error.description()}")
+                }
+            }
+        })
     }
 
     private fun captureSinglePhoto() {
@@ -106,19 +145,22 @@ class MainActivity : AppCompatActivity() {
     private fun ensurePhotoMode(keyManager: KeyManager) {
         val modeKey = KeyTools.createKey(CameraKey.KeyCameraMode, ComponentIndexType.LEFT_OR_MAIN)
 
-        keyManager.setValue(modeKey, CameraMode.PHOTO_NORMAL, object : CommonCallbacks.CompletionCallback {
-            override fun onSuccess() {
-                updateStatus("Camera mode set to photo normal")
-                triggerShutter(keyManager)
+        keyManager.setValue(
+            modeKey,
+            CameraMode.PHOTO_NORMAL,
+            object : CommonCallbacks.CompletionCallback {
+                override fun onSuccess() {
+                    updateStatus("Camera mode set to photo normal")
+                    triggerShutter(keyManager)
 
-            }
+                }
 
-            override fun onFailure(error: IDJIError) {
-                updateStatus("Camera mode set failed")
+                override fun onFailure(error: IDJIError) {
+                    updateStatus("Camera mode set failed")
 
-                Log.e("DJI", "❌ Error setting camera mode: " + error.description())
-            }
-        })
+                    Log.e("DJI", "❌ Error setting camera mode: " + error.description())
+                }
+            })
 
     }
 
